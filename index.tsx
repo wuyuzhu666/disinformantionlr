@@ -86,11 +86,11 @@ const generateSystemInstruction = (scenario: typeof CURRENT_SCENARIO) => {
    - 此阶段图片只在第一次展示时设置 image_url 为 "IMG_CASE1"，后续对话中 image_url 必须为 null。
 
 2. 2_LateralReading（横向阅读）
-   - **核心任务**：引导用户对第一个案例（上海虹桥站）进行横向阅读，查证信源。
-   - **话术**："为了确认我们的猜想，我们需要查一下这个新闻的来源。请打开搜索引擎（百度/必应），搜索这条新闻的关键信息，看看能否找到权威媒体的报道。把你看到的告诉我，或者截图发我。"
-   - **后续**：当用户发现找不到权威来源，或者发现来源不可信后，进行**存真**引导。
-   - **存真引导（重要）**："既然这个来源不可信，那真实的情况到底是怎样的？请再搜一下相关的官方信息或权威媒体报道，看看实际情况是什么。"
-   - **总结**：当用户找到真实信息后，总结："做得好！这就是『横向阅读』——跳出信息本身，去查来源、查官方资料。"
+   - **核心任务**：引导用户对第一个案例（上海虹桥站）进行横向阅读，**重点查清“是谁在说”“这个来源靠不靠谱”**。
+   - **话术**："为了确认我们的猜想，我们需要**跳出这条新闻本身，专门去查它的来源**。请打开搜索引擎（百度/必应），先搜索这条新闻的标题或关键信息，看一看：① 有没有权威媒体（央媒、地方主流媒体）报道？② 最早是哪个账号/平台发出的？③ 这个账号以往发的内容像不像正规媒体？把你找到的来源和页面截图/链接发给我。"
+   - **后续**：当用户发现**只有自媒体、营销号或来历不明账号在传**，或者**不同媒体给出的说法明显不一致**时，要引导其意识到：来源越不透明，越需要谨慎。
+   - **存真引导（重要）**："既然现在的来源不太可靠，我们就反过来专门去找**官方通报、权威媒体或专业机构**的说法。请再搜一下相关的政府部门、权威媒体报道，看看他们是怎么描述这件事的。"
+   - **总结**：当用户给出多个来源并作出判断后，总结："做得好！这就是『横向阅读』——**不停留在一条信息本身，而是横向打开多个来源，对比谁更专业、更可信**。"
    
    - **必须教学：AI 检索也是横向阅读，但必须验证（重要）**
      - **第一步：提问用户是否使用了 AI 工具**
@@ -722,6 +722,21 @@ const App = () => {
         };
       }
 
+      // 补强：第三阶段首条消息必须包含完整案例文本（scenario.final_test_context）
+      const isFirstAgentMessage = messages.every(m => m.role !== 'model');
+      const isFirstFinalStageMessage =
+        jsonResponse.stage === '3_Assessment' &&
+        (currentStage !== '3_Assessment' || isFirstAgentMessage);
+
+      if (isFirstFinalStageMessage) {
+        const fullContext = CURRENT_SCENARIO.final_test_context;
+        if (!jsonResponse.agent_response || !jsonResponse.agent_response.includes(fullContext)) {
+          const prefix =
+            '现在，我们来个实战演练。请你用刚才学到的横向阅读方法，独立核查这条新闻。请直接把你的调查过程和结论发给我。\n\n';
+          jsonResponse.agent_response = prefix + fullContext;
+        }
+      }
+
       // Logic check
       if (jsonResponse.is_relevant === false && userMessage !== "SYSTEM_INIT: 开始模拟，进入阶段 1。") {
          const newCount = offTopicCount + 1;
@@ -784,8 +799,6 @@ const App = () => {
       
       console.log("Final resolvedImageUrl:", resolvedImageUrl, "for stage:", jsonResponse.stage);
       
-      const isFirstAgentMessage = messages.every(m => m.role !== 'model');
-
       // 特殊检查：第一阶段首条消息必须有图片（案例 1）
       if (isFirstAgentMessage && (jsonResponse.stage === '1_Onboarding' || !jsonResponse.stage) && !resolvedImageUrl) {
         if (IMAGE_LIBRARY['IMG_CASE1']) {
