@@ -433,6 +433,7 @@ const App = () => {
   const [captchaCode, setCaptchaCode] = useState<string | null>(null);
   const [captchaSyncStatus, setCaptchaSyncStatus] = useState<CaptchaSyncStatus>('idle');
   const [captchaError, setCaptchaError] = useState<string | null>(null);
+  const [hasShownFinalImage, setHasShownFinalImage] = useState(false);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -808,7 +809,20 @@ const App = () => {
         if (IMAGE_LIBRARY['IMG_FINAL']) {
           resolvedImageUrl = IMAGE_LIBRARY['IMG_FINAL'];
           console.warn("Force using IMG_FINAL:", resolvedImageUrl);
+          setHasShownFinalImage(true);
         }
+      } else if (jsonResponse.stage === '3_Assessment' && !hasShownFinalImage) {
+        // 容错：进入第三阶段后，如仍未显示图片，则强制补图一次
+        if (IMAGE_LIBRARY['IMG_FINAL']) {
+          resolvedImageUrl = IMAGE_LIBRARY['IMG_FINAL'];
+          console.warn("Force using IMG_FINAL (fallback after entering stage 3):", resolvedImageUrl);
+          setHasShownFinalImage(true);
+        }
+      }
+
+      // 离开第三阶段后重置标记，便于后续新会话/重开时再次展示
+      if (jsonResponse.stage && jsonResponse.stage !== '3_Assessment' && hasShownFinalImage) {
+        setHasShownFinalImage(false);
       }
 
       // 记录 Agent 侧的日志
