@@ -1,0 +1,97 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>横向阅读教练 - 媒介素养 Agent</title>
+    <style>
+      :root {
+        --primary-color: #2563eb;
+        --bg-color: #f3f4f6;
+        --chat-bg: #ffffff;
+      }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        background-color: var(--bg-color);
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+      }
+      #root {
+        width: 100%;
+        max-width: 600px; /* Max width for desktop viewing */
+        height: 100%;
+        background-color: var(--chat-bg);
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+      }
+      /* Loading Spinner Styles */
+      #loading-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        color: #666;
+      }
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 10px;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      @media (max-width: 600px) {
+        body { background-color: #fff; }
+        #root { box-shadow: none; }
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.2.0",
+    "react/": "https://esm.sh/react@18.2.0/",
+    "react-dom": "https://esm.sh/react-dom@18.2.0",
+    "react-dom/": "https://esm.sh/react-dom@18.2.0/",
+    "react-markdown": "https://esm.sh/react-markdown@9.0.1?bundle&external=react,react-dom",
+    "@google/genai": "https://esm.sh/@google/genai"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <!-- Initial Loading State (Removed by React once loaded) -->
+    <div id="loading-overlay">
+      <div class="spinner"></div>
+      <div>正在连接实验室...</div>
+    </div>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+    <script>
+      // Remove loading overlay when React mounts (fallback)
+      window.onload = function() {
+        setTimeout(() => {
+          const overlay = document.getElementById('loading-overlay');
+          if(overlay && document.getElementById('root').childElementCount > 0) {
+             overlay.style.display = 'none';
+          }
+        }, 1000);
+      }
+    </script>
+  </body>
+</html>
