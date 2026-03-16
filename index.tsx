@@ -13,7 +13,7 @@ const USER_CONFIG = {
   // 2. 模型配置 (Google Gemini 2.5 Flash)
   PROVIDER: 'openai' as const, 
   BASE_URL: "https://openrouter.ai/api/v1",
-  MODEL: "google/gemini-2.5-flash-lite-preview-09-2025", 
+  MODEL: "moonshotai/kimi-k2.5", 
   // 3. 温度（0-2），默认较稳
   TEMPERATURE: 0.1,
 };
